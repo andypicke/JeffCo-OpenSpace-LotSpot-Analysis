@@ -1,0 +1,4 @@
+raw_data/
+*.zip
+*.pdf
+.DS_Store
