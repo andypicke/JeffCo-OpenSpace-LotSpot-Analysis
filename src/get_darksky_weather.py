@@ -10,10 +10,10 @@ def get_darksky_historical(api_key, lat = 39.646865, lon = -105.196314, time = '
     Get historical darksky weather data for specified location and time
     
     INPUT
-    api_key (str) Secret!
+    api_key (str): Secret!
     lat (float): Default is latitude for East Mount Falcon Trailhead
     lon (float): Default is latitude for East Mount Falcon Trailhead
-    time (str): Formatted like '2020-05-01T00:00:00'
+    time (str) : Formatted like '2020-05-01T00:00:00'
     
     OUTPUT
     df_daily, df_hourly : Pandas Dataframes with daily, hourly weather data
@@ -25,8 +25,10 @@ def get_darksky_historical(api_key, lat = 39.646865, lon = -105.196314, time = '
     dat_dict = content.json()
     daily = dat_dict['daily']['data'][0]
     df_daily = pd.DataFrame.from_dict([daily])
+    
     df_daily['lat'] = lat
     df_daily['lon'] = lon
+
     time_fields = ['time','sunriseTime','sunsetTime','precipIntensityMaxTime','temperatureHighTime','temperatureLowTime',
               'apparentTemperatureHighTime','apparentTemperatureLowTime','windGustTime','uvIndexTime','temperatureMinTime',
               'temperatureMaxTime','temperatureMaxTime','apparentTemperatureMinTime','apparentTemperatureMaxTime']
@@ -37,7 +39,6 @@ def get_darksky_historical(api_key, lat = 39.646865, lon = -105.196314, time = '
     df_hourly = pd.DataFrame.from_dict(hourly['data'])
     df_hourly['lat'] = lat
     df_hourly['lon'] = lon
-
     df_hourly['time'] = pd.to_datetime(df_hourly['time'], origin='unix', unit='s', utc=True).dt.tz_convert(dat_dict['timezone'])
     
     return df_daily, df_hourly
