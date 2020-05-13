@@ -1,4 +1,4 @@
-# Predicting Trailhead Parking Capacity at JeffCo Open Space Trailheads
+# Predicting Trailhead Parking Usage and Capacity at JeffCo Open Space Trailheads
 
 # Introduction
 I propose to build a model to predict parking lot capacity at [Jefferson County Open Space](https://www.jeffco.us/open-space) trailheads in Colorado. This would be useful to:
@@ -19,19 +19,46 @@ The data was shared by [Lot Spot](https://lotspot.co/), which JeffCo Open Space 
 - [Lair o' the Bear](https://www.jeffco.us/1254/Lair-o-the-Bear-Park)
 - [Mount Galbraith](https://www.jeffco.us/1335/Mount-Galbraith-Park)
 
- A camera located at the entrance to the parking lot detects when a vehicle enters or exits the lot. The LotSpot data features are a timestamp, % capacity of the lot, # spaces in use, and whether a car entered/exited.  The timestamps are not evenly spaced (there is a datapoint whenever a car enters/exits a lot), so I will need to bin/interpolate the data to a regularly spaced timeseries (1 hr) for analysis and modeling. 
+ A camera located at the entrance to the parking lot detects when a vehicle enters or exits the lot. The LotSpot data contains a timestamp, # spaces in use, whether a car entered/exited, and % capacity of the lot. The timestamps are not evenly spaced (there is a datapoint whenever a car enters/exits a lot), so the raw data was resampled to a regularly spaced timeseries (1 hr intervals) for analysis and modeling. The time range of the data was from 2019-08-30 to 2020-05-06. 
 
 ## Weather
 [Powered by Dark Sky](https://darksky.net/poweredby/)
-
+- Temperature
+- UV Index
+- Cloud Cover
+- Precipitation
 
 # EDA
+
+- Timeseries of total visitors(cars) per day. Note coronavirus start?
+- Boxplots of total visits by day of week
+- Hourly distribution, maybe separated by week/weekend?
 
 
 # Modeling
 
 
-# Results
+## Features
+- Day of week (or isweekend)
+
+## Train/test split
+
+- 
+
+## Random Forest
+
+- Performace metrics
+- Feature importance plot
+- Partial dependence plot
 
 
-# Conclusions
+# Results/Conclusions
+- Weather is really important!
+- Covid-19 complications
+- Need more data!
+
+# If I had more time...
+- Look at different parks
+- Weather observed vs. forecasted?
+- Weather variability 
+
