@@ -21,6 +21,8 @@ The data was shared by [Lot Spot](https://lotspot.co/), which JeffCo Open Space 
 
  A camera located at the entrance to the parking lot detects when a vehicle enters or exits the lot. The LotSpot data contains a timestamp, # spaces in use, whether a car entered/exited, and % capacity of the lot. The timestamps are not evenly spaced (there is a datapoint whenever a car enters/exits a lot), so the raw data was resampled to a regularly spaced timeseries (1 hr intervals) for analysis and modeling. The time range of the data was from 2019-08-30 to 2020-05-06. 
 
+Given the time constraints, I chose to first focus on a single park: East Mount Falcon. 
+
 ## Weather
 [Powered by Dark Sky](https://darksky.net/poweredby/)
 - Temperature
@@ -31,8 +33,13 @@ The data was shared by [Lot Spot](https://lotspot.co/), which JeffCo Open Space 
 # EDA
 
 - Timeseries of total visitors(cars) per day. Note coronavirus start?
-- Boxplots of total visits by day of week
-- Hourly distribution, maybe separated by week/weekend?
+![](images/east_mount_falconDaily_TS.png)
+
+- Hourly Patterns
+![](images/east_mount_falcon_AvgPerCap_vs_hour.png)
+
+- Daily Patterns
+![](images/east_mount_falcon_AvgPerCap_vs_DayofWeek.png)
 
 
 # Modeling
@@ -48,9 +55,12 @@ The data was shared by [Lot Spot](https://lotspot.co/), which JeffCo Open Space 
 ## Random Forest
 
 - Performace metrics
-- Feature importance plot
-- Partial dependence plot
 
+- Feature importance plot
+![](images/rf_featimp.png)
+
+- Partial dependence plot
+![](images/rf_part_dep.png)
 
 # Results/Conclusions
 - Weather is really important!
