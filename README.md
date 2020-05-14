@@ -1,7 +1,7 @@
 # Predicting Trailhead Parking Usage and Capacity at JeffCo Open Space Trailheads
 
 # Introduction
-I decided to build a model to predict parking lot capacity at [Jefferson County Open Space](https://www.jeffco.us/open-space) trailheads in Colorado. This would be useful to:
+I decided to build a model to predict parking lot % capacity (ie number of spots taken divided by total number of spots) at [Jefferson County Open Space](https://www.jeffco.us/open-space) trailheads in Colorado. This would be useful to:
 - Hikers: When is the best time to go for a hike? Will there be parking available? 
 - Open Space managers: How should we plan/allocate resources among the parks?
 
@@ -33,8 +33,8 @@ Historical weather data was obtained from the [Dark Sky API](https://darksky.net
 # EDA
 
 ## Timeseries of total visitors(cars) per day
-* A little bit of seasonal pattern, but not as much as expected
-* Note general increase after March 2020 - likely Covid-19 related.
+* A little bit of seasonal pattern, but not as much as expected.
+* Note general increase after March 2020 - likely Covid-19 related, though can't be sure.
 
 ![](images/east_mount_falcon_Daily_TS.png)
 
@@ -59,7 +59,7 @@ Historical weather data was obtained from the [Dark Sky API](https://darksky.net
 # Modeling
 
 ## Target
-- Percent Capacity of Parking Lot (hourly)
+- Hourly Percent Capacity of Parking Lot (0-100)
 
 ## Features
 - Day of week: Converted into Is-Weekend binary category.
@@ -72,8 +72,9 @@ Historical weather data was obtained from the [Dark Sky API](https://darksky.net
 ## Train/test split
 - Use only pre-Covid19 data (before March 1, 2020)
 - Use only hours 6am to 8pm
-- 80/20 Train/Test Split (_Keep entire days together_)
+- 80/20 Train/Test Split
 - Train and tune model on training data, then evaluate on test-set.
+- Measure performance by R^2 and RMSE
 
 ## Baseline Model: Predict the mean
 * Test-set RMSE : 28.9
@@ -81,6 +82,8 @@ Historical weather data was obtained from the [Dark Sky API](https://darksky.net
 ## Random Forest
 
 ### Default Parameters
+
+* Looks like default model is overfitting on training data
 
 Performance:
 * Train-set R^2 : 0.95
@@ -115,7 +118,7 @@ Best Parameters:
 ![](images/east_mount_falcon_rf_part_dep.png)
 
 # Results/Conclusions
-- A random forest model predicts hourly parking lot capacity with R^2 of 0.64 and RMSE of 17.2 .
+- A random forest model predicts hourly parking lot % capacity with R^2 of 0.64 and RMSE of 17.2 .
 - Weather is really important!
 - Need more data: Observe all seasons and weather conditions, as well as be able to isolate Covid-19 effects.
 
