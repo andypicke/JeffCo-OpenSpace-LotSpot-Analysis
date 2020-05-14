@@ -103,8 +103,8 @@ Best Parameters:
 
 
 ### Partial Dependence Plot
-* Temperature shows generally positive dependence (what happens at higher temps?)
-* Cloud cover shows weaker negative trend, and appears to be a larger negative shift at values >0.5 .
+* Temperature shows generally positive dependence. Note breaks around freezing and around 55 degrees. What happens at higher temps?
+* Cloud cover shows weaker negative trend, and there appears to be a larger negative shift at values > 0.5 .
 * Precipitation Intensity shows slight negative trend, but a lot weaker than I expected.
 * UV Index: Big break at value of ~2.
 
