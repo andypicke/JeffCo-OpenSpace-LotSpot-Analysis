@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 np.set_printoptions(suppress=True)
+np.random.seed(47)
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -21,13 +22,20 @@ plt.rcParams['ytick.labelsize'] = 'large'
 plt.rcParams['lines.linewidth'] = 3
 plt.style.use('ggplot')
 
+
 def read_process_park_data_into_hourly(park_name):
     '''
     Read in raw LotSpot data for a park and process into dataframe, **resampled to 1-hour intervals**
     Convert timestamp to US/Mountain datetime, add various datetime fields for analysis
+
+    INPUT
+    park_name (str) : Name of park to load
+
+    RETURNS
+    df_hourly (Pandas Dataframe)
     '''
     col_names = ['percent_capacity','spots_taken','total_spots','timestamp','in_out']
-    df = pd.read_csv('./data/raw_data/' + park_name + '.csv', header=None, names=col_names )
+    df = pd.read_csv('../data/raw_data/' + park_name + '.csv', header=None, names=col_names )
 
     df['datetime_utc'] = pd.to_datetime(df['timestamp'], origin='unix', unit='s', utc=True)
     df['datetime'] = df['datetime_utc'].dt.tz_convert('US/Mountain')
@@ -35,7 +43,6 @@ def read_process_park_data_into_hourly(park_name):
     
     df.drop(['spots_taken','total_spots','in_out'], axis=1, inplace=True)
     
-    # Resample timeseries to hourly
     df_hourly = df.set_index('datetime').resample('H').pad().reset_index()
     
     df_hourly['date']  = df_hourly['datetime'].dt.date
@@ -65,24 +72,35 @@ if __name__=='__main__':
     # dummy-encode 'hour' feature
     df = pd.get_dummies(df,columns=['hour'], drop_first=True)
 
-    # drop un-neeed columns for model
-    df.drop(['datetime','date','day','month','time','dow'], axis=1, inplace=True)
-
+    # drop un-needed columns for model
+    df.drop(['datetime','day','month','time','dow'], axis=1, inplace=True)
+    
     # drop any rows with NaNs
     df.dropna(axis=0, how='any', inplace=True)
 
-    # Make feature and target arrays
-    y = df.pop('percent_capacity').values
-    feature_names = df.columns
-    X = df.values
+    # Train/test split ; Note I keep entire days together
+    df['date'] = df['date'].astype(str)
+    uniq_dates = df['date'].unique()
+    Ntrain = round(0.8*len(uniq_dates))
+    train_dates = np.random.choice(uniq_dates, size=Ntrain, replace=False)
+    df_train = df.loc[df['date'].isin(train_dates)]
+    df_test = df.loc[~df['date'].isin(train_dates)]
+    df_train.drop('date', axis=1, inplace=True)
+    df_test.drop('date', axis=1, inplace=True)
 
-    # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=7)
-
+    # Make target/feature arrays
+    y_train = df_train.pop('percent_capacity').values
+    y_test  = df_test.pop('percent_capacity').values
+    feature_names = df_train.columns
+    X_train = df_train.values
+    X_test  = df_test.values
+    
     # Predict the mean - hopefully we can do better!
+    y_hat_mean = np.mean(y_train)*np.ones_like(y_train)
+    print( 'Predict mean train  R^2:' +  str(round(r2_score(y_train,y_hat_mean),2)) )
     y_hat_mean = np.mean(y_train)*np.ones_like(y_test)
-    print( round(r2_score(y_test,y_hat_mean),2) )
-    print( round(np.sqrt(mean_squared_error(y_test,y_hat_mean)),2) )
+    print( 'Predict mean test R^2:' +  str(round(r2_score(y_test,y_hat_mean),2)) )
+    print( 'Predict RMSE:' + str(round(np.sqrt(mean_squared_error(y_test,y_hat_mean)),2)) )
 
     # Fit Random Forest with default parameters
     rf = RandomForestRegressor(n_jobs=-1)
@@ -97,22 +115,26 @@ if __name__=='__main__':
                 'max_features':['auto','sqrt','log2'],
                 'min_samples_split':[2,5,10],
                 'n_jobs':[-1],
-                'max_depth':[None, 3, 20, 30]
+                'max_depth':[None, 5, 10, 20]
                 }
     cv = GridSearchCV(RandomForestRegressor(), rf_params, n_jobs=-1, verbose=1)
     cv.fit(X_train,y_train)
 
     rf_best = cv.best_estimator_
+
+    print(rf_best)
+
     y_hat_rf_best = rf_best.predict(X_test)
     print('RF-Tuned Train R^2: ' + str(round(rf_best.score(X_train,y_train),2) ) )
     print('RF-Tuned Test R^2: '  + str(round(rf_best.score(X_test,y_test),2) ) )
     print('RF-Tuned Test RMSE: '  + str(round(np.sqrt(mean_squared_error(y_test, y_hat_rf_best)),2) ) )
 
     # Plot Feature Importances
-    feat_imp = pd.DataFrame({'feature_name':feature_names, 'feat_imp': rf.feature_importances_})
+    std = np.std([tree.feature_importances_ for tree in rf_best.estimators_], axis=0)
+    feat_imp = pd.DataFrame({'feature_name':feature_names, 'feat_imp': rf.feature_importances_, 'std':std})
     feat_imp.sort_values('feat_imp',ascending=False,inplace=True)
     fig, ax = plt.subplots(1, figsize=(8,10))
-    ax.barh(feat_imp['feature_name'], feat_imp['feat_imp'])
+    ax.barh(feat_imp['feature_name'], feat_imp['feat_imp'], xerr=feat_imp['std'])
     ax.invert_yaxis()
     ax.set_xlabel('Feature Importance')
     plt.savefig('./images/' + park_name + '_rf_featimp.png', bbox_inches='tight')

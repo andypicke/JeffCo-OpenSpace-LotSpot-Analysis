@@ -34,19 +34,29 @@ Given the time constraints, I chose to first focus on a single park: **East Moun
 # EDA
 
 ## Timeseries of total visitors(cars) per day
-![](images/east_mount_falconDaily_TS.png)
+* A little bit of seasonal pattern, but not as much as expected
+* Note general increase after March 2020 - likely Covid-19 related.
+![](images/east_mount_falcon_Daily_TS.png)
 
 ## Hourly Pattern
 ![](images/east_mount_falcon_AvgPerCap_vs_hour.png)
 
 ## Daily Pattern
+* Signficant difference between weekdays/weekends
+
 ![](images/east_mount_falcon_AvgPerCap_vs_DayofWeek.png)
 
-## Weather
+## Weather Timeseries
+![](images/east_mount_falcon_PerCap_weather_TS.png)
+
+## Percent Capacity Vs. Weather
 ![](images/east_mount_falcon_weather_scatter.png)
 
 
 # Modeling
+
+## Target
+- Percent Capacity of Parking Lot (hourly)
 
 ## Features
 - Day of week: Converted into Is-Weekend binary category.
@@ -55,19 +65,36 @@ Given the time constraints, I chose to first focus on a single park: **East Moun
 - Cloud Cover
 - Precipitation Intensity
 
-## Target
-- Percent Capacity of Parking Lot (hourly)
-
-
 ## Train/test split
-- Use only pre-Covid19 data (before March 2020)
-- 80/20 Train/Test Split 
+- Use only pre-Covid19 data (before March 1, 2020)
+- Use only hours 6am to 8pm
+- 80/20 Train/Test Split (_Keep entire days together_)
 - Train and tune model on training data, then evaluate on test-set.
+
+## Baseline Model: Predict the mean
+* Test-set RMSE : 28.9
 
 ## Random Forest
 
-* Test-set R^2  :
-* Test-set RMSE :
+### Default Parameters
+
+Performance:
+* Train-set R^2 : 0.95
+* Test-set R^2  : 0.54
+* Test-set RMSE : 19.5
+
+### Tuned w/ GridSearchCV
+
+Performance:
+* Train-set R^2 : 0.75
+* Test-set R^2  : 0.64
+* Test-set RMSE : 17.2
+
+Best Parameters:
+* n_estimators : 100
+* max_depth : 10
+* max_features : 'log2'
+* min_samples_split : 10 
 
 ### Feature Importance
 * Weather variabes and day of week most important
@@ -78,7 +105,8 @@ Given the time constraints, I chose to first focus on a single park: **East Moun
 ### Partial Dependence Plot
 * Temperature shows generally positive dependence (what happens at higher temps?)
 * Cloud cover shows weaker negative trend, and appears to be a larger negative shift at values >0.5 .
-* 
+* Precipitation Intensity shows slight negative trend, but a lot weaker than I expected.
+* UV Index: Big break at value of ~2.
 
 ![](images/east_mount_falcon_rf_part_dep.png)
 
