@@ -1,11 +1,9 @@
 # Predicting Trailhead Parking Usage and Capacity at JeffCo Open Space Trailheads
 
 # Introduction
-I propose to build a model to predict parking lot capacity at [Jefferson County Open Space](https://www.jeffco.us/open-space) trailheads in Colorado. This would be useful to:
+I decided to build a model to predict parking lot capacity at [Jefferson County Open Space](https://www.jeffco.us/open-space) trailheads in Colorado. This would be useful to:
 - Hikers: When is the best time to go for a hike? Will there be parking available? 
 - Open Space managers: How should we plan/allocate resources among the parks?
-
-This takes on added importance in the time of Covid-19, with the goal of maintaining adequate social distancing on trails. 
 
 # Data
 
@@ -19,16 +17,17 @@ The data was shared by [Lot Spot](https://lotspot.co/), which JeffCo Open Space 
 - [Lair o' the Bear](https://www.jeffco.us/1254/Lair-o-the-Bear-Park)
 - [Mount Galbraith](https://www.jeffco.us/1335/Mount-Galbraith-Park)
 
- A camera located at the entrance to the parking lot detects when a vehicle enters or exits the lot. The LotSpot data contains a timestamp, # spaces in use, whether a car entered/exited, and % capacity of the lot. The timestamps are not evenly spaced (there is a datapoint whenever a car enters/exits a lot), so the raw data was resampled to a regularly spaced timeseries (1 hr intervals) for analysis and modeling. The time range of the data was from 2019-08-30 to 2020-05-06. 
+A camera located at the entrance to the parking lot detects when a vehicle enters or exits the lot. The LotSpot data contains a timestamp, # spaces in use, whether a car entered/exited, and % capacity of the lot. The timestamps are not evenly spaced (there is a datapoint whenever a car enters/exits a lot), so the raw data was resampled to a regularly spaced timeseries (1 hr intervals) for analysis and modeling. The time range of the data was from 2019-08-30 to 2020-05-06. 
 
 Given the time constraints, I chose to first focus on a single park: **East Mount Falcon**. This is one of my personal favorites, had very few data gaps, and I know from experience can reach capacity. 
 
-## Weather
+## Weather Data
 [Powered by Dark Sky](https://darksky.net/poweredby/)
+Historical weather data was obtained from the [Dark Sky API](https://darksky.net/dev/docs) for the time period of the LotSpot observations. The API takes a location (lat/lon) and returns both daily and hourly observations for the date requested. The data contains many fields; for the purpose of this analysis I was interested in the following:
 - Temperature
 - UV Index
 - Cloud Cover
-- Precipitation
+- Precipitation Intensity
 - Wind Gust
 
 # EDA
@@ -36,9 +35,11 @@ Given the time constraints, I chose to first focus on a single park: **East Moun
 ## Timeseries of total visitors(cars) per day
 * A little bit of seasonal pattern, but not as much as expected
 * Note general increase after March 2020 - likely Covid-19 related.
+
 ![](images/east_mount_falcon_Daily_TS.png)
 
 ## Hourly Pattern
+
 ![](images/east_mount_falcon_AvgPerCap_vs_hour.png)
 
 ## Daily Pattern
@@ -47,9 +48,11 @@ Given the time constraints, I chose to first focus on a single park: **East Moun
 ![](images/east_mount_falcon_AvgPerCap_vs_DayofWeek.png)
 
 ## Weather Timeseries
+
 ![](images/east_mount_falcon_PerCap_weather_TS.png)
 
 ## Percent Capacity Vs. Weather
+
 ![](images/east_mount_falcon_weather_scatter.png)
 
 
@@ -64,6 +67,7 @@ Given the time constraints, I chose to first focus on a single park: **East Moun
 - UV Index
 - Cloud Cover
 - Precipitation Intensity
+- Hour of day - turned into dummy variables.
 
 ## Train/test split
 - Use only pre-Covid19 data (before March 1, 2020)
@@ -111,13 +115,18 @@ Best Parameters:
 ![](images/east_mount_falcon_rf_part_dep.png)
 
 # Results/Conclusions
+- A random forest model predicts hourly parking lot capacity with R^2 of 0.64 and RMSE of 17.2 .
 - Weather is really important!
 - Need more data: Observe all seasons and weather conditions, as well as be able to isolate Covid-19 effects.
 
 # If I had more time...
 - Look at different parks
-- Also predict # visitors, probability of lot being full, or waiting times.
 - More features (snow storms, holidays, etc.)
 - Weather observed vs. forecasted?
 - Weather variability by location
+- Also predict # visitors, probability of lot being full, or waiting times.
+
+# Credits/Acknowledgments
+* Thanks to Hunter Berge and Connor McCormick at [Lot Spot](https://lotspot.co/) for sharing their data.
+* Thanks to the Galvanize instructional team (Frank, Kayla, Mike) and capstone group for feedback and support.
 
