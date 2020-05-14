@@ -1,6 +1,7 @@
+# Train a random forest model to predict parking lot capacity
+
 import pandas as pd
 import numpy as np
-np.set_printoptions(suppress=True)
 np.random.seed(47)
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -8,8 +9,6 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.ensemble import AdaBoostRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from sklearn.inspection import plot_partial_dependence
@@ -22,27 +21,26 @@ plt.rcParams['ytick.labelsize'] = 'large'
 plt.rcParams['lines.linewidth'] = 3
 plt.style.use('ggplot')
 
-
 def read_process_park_data_into_hourly(park_name):
     '''
     Read in raw LotSpot data for a park and process into dataframe, **resampled to 1-hour intervals**
-    Convert timestamp to US/Mountain datetime, add various datetime fields for analysis
+    Convert timestamp to US/Mountain datetime, add various datetime fields for analysis.
 
     INPUT
     park_name (str) : Name of park to load
 
     RETURNS
-    df_hourly (Pandas Dataframe)
+    df_hourly (Pandas Dataframe), resampled to hourly intervals
     '''
     col_names = ['percent_capacity','spots_taken','total_spots','timestamp','in_out']
-    df = pd.read_csv('../data/raw_data/' + park_name + '.csv', header=None, names=col_names )
+    df = pd.read_csv('./data/raw_data/' + park_name + '.csv', header=None, names=col_names )
 
     df['datetime_utc'] = pd.to_datetime(df['timestamp'], origin='unix', unit='s', utc=True)
     df['datetime'] = df['datetime_utc'].dt.tz_convert('US/Mountain')
     df.drop(['timestamp','datetime_utc'], axis=1, inplace=True)
-    
     df.drop(['spots_taken','total_spots','in_out'], axis=1, inplace=True)
     
+    # Resample to hourly intervals
     df_hourly = df.set_index('datetime').resample('H').pad().reset_index()
     
     df_hourly['date']  = df_hourly['datetime'].dt.date
@@ -60,11 +58,11 @@ if __name__=='__main__':
     df = read_process_park_data_into_hourly(park_name)
     df['percent_capacity'] = df['percent_capacity']*100
     df = df[(df['hour']>5) & (df['hour']<20)]
-    df = df[df['datetime']<'2020-03-01']
+    df = df[df['datetime']<'2020-03-01'] # pre-Covid19 time period
     df['is_wknd'] = df['dow'].apply(lambda x: 0 if x<5 else 1)
     df['hour']=df['hour'].astype('category')
 
-    # merge weather data
+    # load and merge weather data
     wea = pd.read_pickle('./data/weather/weather_combined_wea_hourly.pkl')
     wea = wea[['time','temperature','cloudCover','precipIntensity','uvIndex']]
     df = pd.merge(df, wea, left_on='datetime', right_on='time')
@@ -78,7 +76,8 @@ if __name__=='__main__':
     # drop any rows with NaNs
     df.dropna(axis=0, how='any', inplace=True)
 
-    # Train/test split ; Note I keep entire days together
+    # Train/test split ; Note I keep entire days together per Kayla's suggestion, 
+    # since data within a certain day might be correlated
     df['date'] = df['date'].astype(str)
     uniq_dates = df['date'].unique()
     Ntrain = round(0.8*len(uniq_dates))
@@ -125,8 +124,8 @@ if __name__=='__main__':
     print(rf_best)
 
     y_hat_rf_best = rf_best.predict(X_test)
-    print('RF-Tuned Train R^2: ' + str(round(rf_best.score(X_train,y_train),2) ) )
-    print('RF-Tuned Test R^2: '  + str(round(rf_best.score(X_test,y_test),2) ) )
+    print('RF-Tuned Train R^2: '  + str(round(rf_best.score(X_train,y_train),2) ) )
+    print('RF-Tuned Test R^2: '   + str(round(rf_best.score(X_test,y_test),2) ) )
     print('RF-Tuned Test RMSE: '  + str(round(np.sqrt(mean_squared_error(y_test, y_hat_rf_best)),2) ) )
 
     # Plot Feature Importances

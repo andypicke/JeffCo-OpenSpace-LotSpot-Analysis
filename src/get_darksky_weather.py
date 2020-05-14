@@ -1,3 +1,6 @@
+# Get weather data from Dark Sky API
+# Saves a hourly and daily DataFrame for each day
+
 import os
 import pandas as pd
 import requests
@@ -47,7 +50,7 @@ if __name__=='__main__':
 
     day_vec = pd.date_range(start='8/30/2019', end='5/6/2020').to_pydatetime().tolist()
     for i in range(len(day_vec)):
-        time = time = str(day_vec[i])[0:10] + 'T00:00:00'
+        time = str(day_vec[i])[0:10] + 'T00:00:00'
         df_daily, df_hourly = get_darksky_historical(api_key, lat = 39.646865, lon = -105.196314, time = time)
         df_daily.to_pickle('./data/weather/wea_daily_' + str(day_vec[i])[0:10] + '.pkl')
         df_hourly.to_pickle('./data/weather/wea_hourly_' + str(day_vec[i])[0:10] + '.pkl')

@@ -78,7 +78,7 @@ def agg_lotspot_daily(df):
     Aggregate raw LotSpot data by date. Compute total # cars, and median/avg/max % capacity
 
     INPUT
-    df
+    df (Pandas Dataframe) : Dataframe of raw LotSpot data
 
     RETURNS
     df_gb_day
@@ -98,20 +98,14 @@ if __name__=='__main__':
     df = read_process_park_data(park_name)
     df_gb_day = agg_lotspot_daily(df)
         
-    fig,ax = plt.subplots(4,figsize=(14,10), sharex=True)
+    fig,ax = plt.subplots(2,figsize=(14,10), sharex=True)
 
     ax[0].plot(df_gb_day['date'], df_gb_day['total_cars'],'o-')
     ax[0].set_ylabel('Total Cars')
     ax[0].set_title(park_name_plot)
 
-    ax[1].plot(df_gb_day['date'], df_gb_day['med_pc'],'o-')
-    ax[1].set_ylabel('Median % Cap.')
-
-    ax[2].plot(df_gb_day['date'], df_gb_day['avg_pc'],'o-')
-    ax[2].set_ylabel('Avg % Cap.')
-
-    ax[3].plot(df_gb_day['date'], df_gb_day['max_pc'],'o-')
-    ax[3].set_ylabel('Max % Cap.')
+    ax[1].plot(df_gb_day['date'], df_gb_day['max_pc'],'o-')
+    ax[1].set_ylabel('Max % Cap.')
 
     plt.savefig('./images/' + park_name + '_Daily_TS.png')
     
@@ -157,6 +151,7 @@ if __name__=='__main__':
     ax[5].plot(dfh['datetime'].values, dfh['windGust'],'.')
     ax[5].set_ylabel('Wind Gust')
     plt.savefig('./images/' + park_name + '_PerCap_weather_TS.png')
+
 
     fig,ax = plt.subplots(nrows=2, ncols=2, figsize=(14,10), sharey=True)
     sns.regplot(dfh['temperature'], dfh['percent_capacity'], robust=True, ci=None, scatter_kws={"alpha": 0.2}, ax = ax.flatten()[0])
