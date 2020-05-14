@@ -21,7 +21,7 @@ The data was shared by [Lot Spot](https://lotspot.co/), which JeffCo Open Space 
 
  A camera located at the entrance to the parking lot detects when a vehicle enters or exits the lot. The LotSpot data contains a timestamp, # spaces in use, whether a car entered/exited, and % capacity of the lot. The timestamps are not evenly spaced (there is a datapoint whenever a car enters/exits a lot), so the raw data was resampled to a regularly spaced timeseries (1 hr intervals) for analysis and modeling. The time range of the data was from 2019-08-30 to 2020-05-06. 
 
-Given the time constraints, I chose to first focus on a single park: East Mount Falcon. 
+Given the time constraints, I chose to first focus on a single park: **East Mount Falcon**. This is one of my personal favorites, had very few data gaps, and I know from experience can reach capacity. 
 
 ## Weather
 [Powered by Dark Sky](https://darksky.net/poweredby/)
@@ -29,46 +29,67 @@ Given the time constraints, I chose to first focus on a single park: East Mount 
 - UV Index
 - Cloud Cover
 - Precipitation
+- Wind Gust
 
 # EDA
 
-- Timeseries of total visitors(cars) per day. Note coronavirus start?
+## Timeseries of total visitors(cars) per day
 ![](images/east_mount_falconDaily_TS.png)
 
-- Hourly Patterns
+## Hourly Pattern
 ![](images/east_mount_falcon_AvgPerCap_vs_hour.png)
 
-- Daily Patterns
+## Daily Pattern
 ![](images/east_mount_falcon_AvgPerCap_vs_DayofWeek.png)
+
+## Weather
+![](images/east_mount_falcon_weather_scatter.png)
 
 
 # Modeling
 
-
 ## Features
-- Day of week (or isweekend)
+- Day of week: Converted into Is-Weekend binary category.
+- Temperature
+- UV Index
+- Cloud Cover
+- Precipitation Intensity
+
+## Target
+- Percent Capacity of Parking Lot (hourly)
+
 
 ## Train/test split
-
-- 
+- Use only pre-Covid19 data (before March 2020)
+- 80/20 Train/Test Split 
+- Train and tune model on training data, then evaluate on test-set.
 
 ## Random Forest
 
-- Performace metrics
+* Test-set R^2  :
+* Test-set RMSE :
 
-- Feature importance plot
-![](images/rf_featimp.png)
+### Feature Importance
+* Weather variabes and day of week most important
 
-- Partial dependence plot
-![](images/rf_part_dep.png)
+![](images/east_mount_falcon_rf_featimp.png)
+
+
+### Partial Dependence Plot
+* Temperature shows generally positive dependence (what happens at higher temps?)
+* Cloud cover shows weaker negative trend, and appears to be a larger negative shift at values >0.5 .
+* 
+
+![](images/east_mount_falcon_rf_part_dep.png)
 
 # Results/Conclusions
 - Weather is really important!
-- Covid-19 complications
-- Need more data!
+- Need more data: Observe all seasons and weather conditions, as well as be able to isolate Covid-19 effects.
 
 # If I had more time...
 - Look at different parks
+- Also predict # visitors, probability of lot being full, or waiting times.
+- More features (snow storms, holidays, etc.)
 - Weather observed vs. forecasted?
-- Weather variability 
+- Weather variability by location
 
