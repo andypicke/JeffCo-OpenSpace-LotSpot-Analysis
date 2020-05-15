@@ -1,7 +1,7 @@
-# Predicting Trailhead Parking Usage and Capacity at JeffCo Open Space Trailheads
+# Predicting Trailhead Parking Fullness at JeffCo Open Space Trailheads
 
 # Introduction
-I decided to build a model to predict parking lot % capacity (ie number of spots taken divided by total number of spots) at [Jefferson County Open Space](https://www.jeffco.us/open-space) trailheads in Colorado. This would be useful to:
+I decided to build a model to predict parking lot % of capacity (ie number of spots taken divided by total number of spots) at [Jefferson County Open Space](https://www.jeffco.us/open-space) trailheads in Colorado. This would be useful to:
 - Hikers: When is the best time to go for a hike? Will there be parking available? 
 - Open Space managers: How should we plan/allocate resources among the parks?
 
@@ -123,13 +123,13 @@ Best Parameters:
 - Need more data: Observe all seasons and weather conditions, as well as be able to isolate Covid-19 effects.
 
 # If I had more time...
-- Look at different parks
-- More features (snow storms, holidays, etc.)
-- Weather observed vs. forecasted?
-- Weather variability by location
+- Test different models
+- Apply to different parks
+- Add/engineer More features (snow storms, holidays, etc.)
 - Also predict # visitors, probability of lot being full, or waiting times.
+- Weather observed vs. forecasted?
 
 # Credits/Acknowledgments
 * Thanks to Hunter Berge and Connor McCormick at [Lot Spot](https://lotspot.co/) for sharing their data.
-* Thanks to the Galvanize instructional team (Frank, Kayla, Mike) and capstone group for feedback and support.
+* Thanks to the Galvanize team (Frank, Kayla, Mike, Travis) and capstone group for feedback and support.
 
