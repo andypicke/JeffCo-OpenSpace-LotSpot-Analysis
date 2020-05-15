@@ -21,6 +21,9 @@ A camera located at the entrance to the parking lot detects when a vehicle enter
 
 Given the time constraints, I chose to first focus on a single park: **East Mount Falcon**. This is one of my personal favorites, had very few data gaps, and I know from experience can reach capacity. 
 
+![](images/IMG-0058.jpg)
+
+
 ## Weather Data
 [Powered by Dark Sky](https://darksky.net/poweredby/)
 Historical weather data was obtained from the [Dark Sky API](https://darksky.net/dev/docs) for the time period of the LotSpot observations. The API takes a location (lat/lon) and returns both daily and hourly observations for the date requested. The data contains many fields; for the purpose of this analysis I was interested in the following:
