@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-np.set_printoptions(suppress=True)
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -11,9 +9,6 @@ plt.rcParams['xtick.labelsize'] = 'large'
 plt.rcParams['ytick.labelsize'] = 'large'
 plt.rcParams['lines.linewidth'] = 3
 plt.style.use('ggplot')
-
-park_list = ['east_mount_falcon', 'east_three_sisters', 'east_white_ranch', 'lair_o_the_bear', 
-             'mount_galbraith', 'west_mount_falcon', 'west_three_sisters']
 
 def read_process_park_data(park_name):
     '''
@@ -99,41 +94,41 @@ if __name__=='__main__':
     df_gb_day = agg_lotspot_daily(df)
         
     fig,ax = plt.subplots(2,figsize=(14,10), sharex=True)
-
     ax[0].plot(df_gb_day['date'], df_gb_day['total_cars'],'o-')
     ax[0].set_ylabel('Total Cars')
     ax[0].set_title(park_name_plot)
-
     ax[1].plot(df_gb_day['date'], df_gb_day['max_pc'],'o-')
     ax[1].set_ylabel('Max % Cap.')
-
     plt.savefig('./images/' + park_name + '_Daily_TS.png')
     
-    
+    # Load hourly resampled data and filter to open hours
     dfh = read_process_park_data_into_hourly(park_name)
     dfh = dfh[(dfh['hour']>5) & (dfh['hour']<20)]
    
-    df3 = dfh.groupby('hour').mean().reset_index()
-    df3
+    # Group by hour and plot average % capacity
+    d_gbh = dfh.groupby('hour').mean().reset_index()
     fig,ax = plt.subplots(1, figsize=(8,6))
-    ax.bar(df3['hour'], df3['percent_capacity'])
+    ax.bar(d_gbh['hour'], d_gbh['percent_capacity'])
     ax.set_xlabel('Hour')
     ax.set_ylabel('Average % Capacity')
     ax.set_title(park_name_plot)
     plt.savefig('./images/' + park_name + '_AvgPerCap_vs_hour.png')
 
-    df3 = dfh.groupby('dow').mean().reset_index()
+    # Group by day of week and plot average % capacity
+    df_gb_dow = dfh.groupby('dow').mean().reset_index()
     fig,ax = plt.subplots(1, figsize=(8,6))
-    ax.bar(df3['dow'], df3['percent_capacity'])
+    ax.bar(df_gb_dow['dow'], df_gb_dow['percent_capacity'])
     ax.set_xlabel('Day of Week (0=Monday)')
     ax.set_ylabel('Average % Capacity')
     ax.set_title(park_name_plot)
     plt.savefig('./images/' + park_name + '_AvgPerCap_vs_DayofWeek.png')
 
+    # Load weather data and merge with hourly parking data
     wea = pd.read_pickle('./data/weather/weather_combined_wea_hourly.pkl')
     wea = wea[['time','temperature','cloudCover','precipIntensity','windGust','uvIndex']]
     dfh = pd.merge(dfh,wea,left_on='datetime',right_on='time')
 
+    # Plot timeseries of % capacity and weather variables
     dfh.set_index('datetime',inplace=True)
     dfh.reset_index(inplace=True)
     fig,ax = plt.subplots(6, figsize=(14,12), sharex=True)
@@ -152,7 +147,7 @@ if __name__=='__main__':
     ax[5].set_ylabel('Wind Gust')
     plt.savefig('./images/' + park_name + '_PerCap_weather_TS.png')
 
-
+    # Make scatter plots of % capacity versus weather variables
     fig,ax = plt.subplots(nrows=2, ncols=2, figsize=(14,10), sharey=True)
     sns.regplot(dfh['temperature'], dfh['percent_capacity'], robust=True, ci=None, scatter_kws={"alpha": 0.2}, ax = ax.flatten()[0])
     ax.flatten()[0].set_xlabel('Temperature')
