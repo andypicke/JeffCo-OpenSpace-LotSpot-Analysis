@@ -1,9 +1,10 @@
-# Get weather data from Dark Sky API
-# Saves a hourly and daily DataFrame for each day
+# Get Dark Sky hiostrical weather data and save to file
+# Set up to run as cron job each day and get yesterday's weather data
 
 import os
 import pandas as pd
 import requests
+from datetime import datetime, timedelta
 
 def get_darksky_historical(api_key, lat = 39.646865, lon = -105.196314, time = '2020-05-01T00:00:00'):
     '''
@@ -44,8 +45,8 @@ def get_darksky_historical(api_key, lat = 39.646865, lon = -105.196314, time = '
     
     return df_daily, df_hourly
 
-if __name__=='__main__':
 
+if __name__=='__main__':
 
     park_info = {}
     park_info['east_mount_falcon']  = {'lat':39.646865, 'lon':-105.196314}
@@ -58,21 +59,22 @@ if __name__=='__main__':
 
     API_KEY = os.getenv('DARKSKY_API_KEY')
 
-    day_vec = pd.date_range(start='8/30/2019', end='5/16/2020').to_pydatetime().tolist()
+    today = datetime.now()
+    yesterday = datetime.now() + timedelta(-1)
+    #print(today.strftime('%Y-%m-%d'))
+    #print(yesterday.strftime('%Y-%m-%d'))
 
-    #for park_name in park_info.keys():
-    ipark=4
-    park_name = list(park_info.keys())[ipark]
-    print(park_name)
-    lat = park_info[park_name]['lat']
-    print(lat)
-    lon = park_info[park_name]['lon']
-    print(lon)
-    for i in range(len(day_vec)):
-        the_time = str(day_vec[i])[0:10] + 'T00:00:00'
-        df_daily, df_hourly = get_darksky_historical(api_key=API_KEY, lat = lat, lon = lon, time = the_time)
+    the_time = yesterday.strftime('%Y-%m-%d') + 'T00:00:00'
+    #print(the_time)
 
-        base_dir = '~/Galvanize/Lot-Spot_Analysis/data/proc/weather/historical/daily_files/'
-
-        df_daily.to_pickle(base_dir  + park_name + '_historical_'  + str(day_vec[i])[0:10] + '_daily.pkl')
-        df_hourly.to_pickle(base_dir + park_name + '_historical_' + str(day_vec[i])[0:10] + '_hourly.pkl')
+    for park_name in park_info.keys():
+        #print(park_name)
+        lat = park_info[park_name]['lat']
+        #print(lat)
+        lon = park_info[park_name]['lon']
+        #print(lon)
+        df_daily, df_hourly = get_darksky_historical(api_key=API_KEY, lat = lat, lon = lon, time=the_time )
+        
+        base_dir = './data/proc/weather/historical/daily_files/'
+        df_daily.to_pickle(base_dir  + park_name + '_historical_' + yesterday.strftime('%Y-%m-%d') + '_daily'   + '.pkl')
+        df_hourly.to_pickle(base_dir + park_name + '_historical_' + yesterday.strftime('%Y-%m-%d') + '_hourly'  + '.pkl')
