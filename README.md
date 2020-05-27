@@ -17,7 +17,8 @@ The data was shared by [Lot Spot](https://lotspot.co/), which JeffCo Open Space 
 - [Lair o' the Bear](https://www.jeffco.us/1254/Lair-o-the-Bear-Park)
 - [Mount Galbraith](https://www.jeffco.us/1335/Mount-Galbraith-Park)
 
-A camera located at the entrance to the parking lot detects when a vehicle enters or exits the lot. The LotSpot data contains a timestamp, # spaces in use, whether a car entered/exited, and % capacity of the lot. The timestamps are not evenly spaced (there is a datapoint whenever a car enters/exits a lot), so the raw data was resampled to a regularly spaced timeseries (1 hr intervals) for analysis and modeling. The time range of the data was from 2019-08-30 to 2020-05-06. 
+You can see real-time parking availability for these parks with LotSpot's [mobile app](https://lotspot.co/mobile-app.html). 
+A camera located at the entrance to the parking lot detects when a vehicle enters or exits the lot. The raw data was not evenly spaced (there is a datapoint whenever a car enters/exits a lot), so the raw data was resampled to a regularly spaced timeseries (1 hr intervals) for analysis and modeling. The time range of the data was from 2019-08-30 to 2020-05-06. 
 
 Given the time constraints, I chose to first focus on a single park: **East Mount Falcon**. This is one of my personal favorites, had very few data gaps, and I know from experience can reach capacity. 
 
@@ -62,7 +63,7 @@ Historical weather data was obtained from the [Dark Sky API](https://darksky.net
 # Modeling
 
 ## Target
-- Hourly Percent Capacity of Parking Lot (0-100)
+- The target I am trying to predict is the hourly percent of capacity of the parking Lot (ie 0-100%)
 
 ## Features
 - Day of week: Converted into Is-Weekend binary category.
@@ -125,12 +126,11 @@ Best Parameters:
 - Weather is really important!
 - Need more data: Observe all seasons and weather conditions, as well as be able to isolate Covid-19 effects.
 
-# If I had more time...
-- Test different models
-- Apply to different parks
-- Add/engineer More features (snow storms, holidays, etc.)
+# Next Steps
+- Test different models and add/engineer more features (snow storms, holidays, etc.).
+- Apply to different parks.
 - Also predict # visitors, probability of lot being full, or waiting times.
-- Weather observed vs. forecasted?
+- Compare observed vs. forecasted weather?
 
 # Credits/Acknowledgments
 * Thanks to Hunter Berge and Connor McCormick at [Lot Spot](https://lotspot.co/) for sharing their data.
