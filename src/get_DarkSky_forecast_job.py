@@ -68,5 +68,11 @@ if __name__=='__main__':
         date_req, df_daily, df_hourly = get_darksky_forecast(api_key=API_KEY, lat = lat, lon = lon)
         #print(date_req)
         base_dir = './data/proc/weather/forecasts/'
+
+        df_daily.to_csv(base_dir  + park_name + '_forecast_' + date_req + '_daily'   + '.csv', index=False)
+
+        df_hourly.to_csv(base_dir + park_name + '_forecast_' + date_req + '_hourly'  + '.csv', index=False)
+
         df_daily.to_pickle(base_dir  + park_name + '_forecast_' + date_req + '_daily'   + '.pkl')
+
         df_hourly.to_pickle(base_dir + park_name + '_forecast_' + date_req + '_hourly'  + '.pkl')

@@ -76,5 +76,11 @@ if __name__=='__main__':
         df_daily, df_hourly = get_darksky_historical(api_key=API_KEY, lat = lat, lon = lon, time=the_time )
         
         base_dir = './data/proc/weather/historical/daily_files/'
+        
+        df_daily.to_csv(base_dir  + park_name + '_historical_' + yesterday.strftime('%Y-%m-%d') + '_daily'   + '.csv', index=False)
+        
+        df_hourly.to_csv(base_dir + park_name + '_historical_' + yesterday.strftime('%Y-%m-%d') + '_hourly'  + '.csv', index=False)
+        
         df_daily.to_pickle(base_dir  + park_name + '_historical_' + yesterday.strftime('%Y-%m-%d') + '_daily'   + '.pkl')
+        
         df_hourly.to_pickle(base_dir + park_name + '_historical_' + yesterday.strftime('%Y-%m-%d') + '_hourly'  + '.pkl')
