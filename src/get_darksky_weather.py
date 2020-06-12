@@ -61,7 +61,7 @@ if __name__=='__main__':
     day_vec = pd.date_range(start='8/30/2019', end='5/16/2020').to_pydatetime().tolist()
 
     #for park_name in park_info.keys():
-    ipark=4
+    ipark=6
     park_name = list(park_info.keys())[ipark]
     print(park_name)
     lat = park_info[park_name]['lat']
