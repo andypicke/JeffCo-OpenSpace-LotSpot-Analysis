@@ -53,7 +53,7 @@ def read_process_park_data_into_hourly(park_name):
     df.drop(['spots_taken','total_spots','in_out'], axis=1, inplace=True)
     
     # Resample to hourly intervals
-    df_hourly = df.set_index('datetime').resample('H').pad().reset_index()
+    df_hourly = df.set_index('datetime').resample('H').pad(limit=3).reset_index()
     
     df_hourly['date']  = df_hourly['datetime'].dt.date
     df_hourly['month'] = df_hourly['datetime'].dt.month
@@ -79,6 +79,8 @@ def agg_lotspot_daily(df):
         med_pc = pd.NamedAgg(column='percent_capacity', aggfunc='median'),
         avg_pc = pd.NamedAgg(column='percent_capacity', aggfunc='mean'),
         max_pc = pd.NamedAgg(column='percent_capacity', aggfunc='max')).reset_index()
+
+    df_gb_day['date'] = pd.to_datetime(df_gb_day['date'])
 
     # Some dates may be missing; ensure we have all days in range (values will be nan if date is missing)
     all_dates = pd.date_range(start=df_gb_day['date'].min(), end=df_gb_day['date'].max(), freq='D')
