@@ -10,155 +10,131 @@ plt.rcParams['ytick.labelsize'] = 'large'
 plt.rcParams['lines.linewidth'] = 3
 plt.style.use('ggplot')
 
-def read_process_park_data(park_name):
+park_info = {}
+park_info['east_mount_falcon']  = {'pretty_name':'East Mount Falcon', 'lat':39.646865, 'lon':-105.196314}
+park_info['east_three_sisters'] = {'pretty_name':'East Three Sisters', 'lat':39.623484, 'lon':-105.345841}
+park_info['east_white_ranch']   = {'pretty_name':'East White Ranch', 'lat':39.798109, 'lon':-105.246799}
+park_info['lair_o_the_bear']    = {'pretty_name':"Lair O' The Bear", 'lat':39.665616, 'lon':-105.258430}
+park_info['mount_galbraith']    = {'pretty_name':'Mount Galbraith', 'lat':39.774085, 'lon':-105.253516}
+park_info['west_mount_falcon']  = {'pretty_name':'West Mount Falcon', 'lat':39.637136, 'lon':-105.239178}
+park_info['west_three_sisters'] = {'pretty_name':'West Three Sisters', 'lat':39.624941, 'lon':-105.360398}
+
+
+def load_proc_park_data(park_name, type='raw'):
     '''
-    Read in raw LotSpot data for a park and process into dataframe.
-    Convert timestamp to US/Mountain datetime, add various datetime fields for analysis
+    Loads processed data frames w/ LotSpot data for parks. These are made in process_LotSpot.py
 
     INPUT
-    park_name (str) : Name of park to load
+    park_name (str)
+    type ('str'): Options are 'raw' (default), 'daily', and 'hourly'.
+    
+    OUTPUT
+    df (Pandas DataFrame) 
 
-    RETURNS
-    df (Pandas Dataframe)
     '''
-    col_names = ['percent_capacity','spots_taken','total_spots','timestamp','in_out']
-    df = pd.read_csv('./data/raw_data/' + park_name + '.csv', header=None, names=col_names )
-
-    df['datetime_utc'] = pd.to_datetime(df['timestamp'], origin='unix', unit='s', utc=True)
-    df['datetime'] = df['datetime_utc'].dt.tz_convert('US/Mountain')
-    df.drop(['timestamp','datetime_utc'], axis=1, inplace=True)
-
-    df['in_out'] = df['in_out'].apply(lambda x: x if x<2 else np.NaN)
-
-    df['date']  = df['datetime'].dt.date
-    df['month'] = df['datetime'].dt.month
-    df['day']   = df['datetime'].dt.day
-    df['hour']  = df['datetime'].dt.hour
-    df['dow']   = df['datetime'].dt.dayofweek
+    base_dir = './data/proc/LotSpot/'
+    
+    if type=='raw':
+        df = pd.read_pickle(base_dir  + park_name + '_raw.pkl')
+    
+    if type=='daily':
+        df = pd.read_pickle(base_dir  + park_name + '_daily.pkl')
+        
+    if type=='hourly':
+        df = pd.read_pickle(base_dir  + park_name + '_resampled_hourly.pkl')
     
     return df
 
-def read_process_park_data_into_hourly(park_name):
-    '''
-    Read in raw LotSpot data for a park and process into dataframe, **resampled to 1-hour intervals**
-    Convert timestamp to US/Mountain datetime, add various datetime fields for analysis
-
-    INPUT
-    park_name (str) : Name of park to load
-
-    RETURNS
-    df_hourly (Pandas Dataframe)
-    '''
-    col_names = ['percent_capacity','spots_taken','total_spots','timestamp','in_out']
-    df = pd.read_csv('./data/raw_data/' + park_name + '.csv', header=None, names=col_names )
-
-    df['datetime_utc'] = pd.to_datetime(df['timestamp'], origin='unix', unit='s', utc=True)
-    df['datetime'] = df['datetime_utc'].dt.tz_convert('US/Mountain')
-    df.drop(['timestamp','datetime_utc'], axis=1, inplace=True)
-    
-    df.drop(['spots_taken','total_spots','in_out'], axis=1, inplace=True)
-    
-    df_hourly = df.set_index('datetime').resample('H').pad().reset_index()
-    
-    df_hourly['date']  = df_hourly['datetime'].dt.date
-    df_hourly['month'] = df_hourly['datetime'].dt.month
-    df_hourly['day']   = df_hourly['datetime'].dt.day
-    df_hourly['hour']  = df_hourly['datetime'].dt.hour
-    df_hourly['dow']   = df_hourly['datetime'].dt.dayofweek
-    
-    return df_hourly
-
-def agg_lotspot_daily(df):
-    '''
-    Aggregate raw LotSpot data by date. Compute total # cars, and median/avg/max % capacity
-
-    INPUT
-    df (Pandas Dataframe) : Dataframe of raw LotSpot data
-
-    RETURNS
-    df_gb_day
-    '''
-    df_gb_day = df.groupby('date').agg(total_cars=pd.NamedAgg(column='in_out', aggfunc='sum'),
-                                  med_pc = pd.NamedAgg(column='percent_capacity', aggfunc='median'),
-                                  avg_pc = pd.NamedAgg(column='percent_capacity', aggfunc='mean'),
-                                  max_pc = pd.NamedAgg(column='percent_capacity', aggfunc='max')).reset_index()
-    return df_gb_day
-
 if __name__=='__main__':
 
-    park_name = 'east_mount_falcon'
-    park_name_plot = 'East Mount Falcon'
+    #park_name = 'east_mount_falcon'
+    for park_name in park_info.keys():
+
+        # Plot Timeseries of daily-aggregated data
+        df_gb_day = load_proc_park_data(park_name, type='daily')
+            
+        fig,ax = plt.subplots(2,figsize=(14,10), sharex=True)
+        ax[0].plot(df_gb_day['date'], df_gb_day['total_cars'],'o-')
+        ax[0].set_ylabel('Total Cars')
+        ax[0].set_title(park_info[park_name]['pretty_name'])
+        ax[1].plot(df_gb_day['date'], df_gb_day['max_pc'],'o-')
+        ax[1].set_ylabel('Max % Of Cap.')
+        plt.savefig('./images/' + park_name + '_Daily_TS.png')
+        plt.close()
+
+        # Load hourly resampled data and filter to open hours
+        #dfh = read_process_park_data_into_hourly(park_name)
+        dfh = load_proc_park_data(park_name, type='hourly')
+        dfh = dfh[(dfh['hour']>5) & (dfh['hour']<20)]
     
-    # Plot Timeseries of daily-aggregated data
-    df = read_process_park_data(park_name)
-    df_gb_day = agg_lotspot_daily(df)
+        # Group by hour and plot average % capacity
+        d_gbh = dfh.groupby('hour').mean().reset_index()
+        fig,ax = plt.subplots(1, figsize=(8,6))
+        ax.bar(d_gbh['hour'], d_gbh['percent_capacity'])
+        ax.set_xlabel('Hour')
+        ax.set_ylabel('Average % Of Capacity')
+        ax.set_title(park_info[park_name]['pretty_name'])
+        plt.savefig('./images/' + park_name + '_AvgPerCap_vs_hour.png')
+        plt.close()
+
+        # Group by day of week and plot average % capacity
+        df_gb_dow = dfh.groupby('dow').mean().reset_index()
+        fig,ax = plt.subplots(1, figsize=(8,6))
+        ax.bar(df_gb_dow['dow'], df_gb_dow['percent_capacity'])
+        ax.set_xlabel('Day of Week (0=Monday)')
+        ax.set_ylabel('Average % Of Capacity')
+        ax.set_title(park_info[park_name]['pretty_name'])
+        plt.savefig('./images/' + park_name + '_AvgPerCap_vs_DayofWeek.png')
+        plt.close()
+
+        # Load weather data and merge with hourly parking data
+        wea = pd.read_pickle('./data/proc/weather/historical/combined/' + park_name + '_historical_combined_wea_hourly.pkl')
+        wea = wea[['time','temperature','cloudCover','precipIntensity','windGust','uvIndex']]
+        dfh = pd.merge(dfh, wea, left_on='datetime', right_on='time')
+
+
+        # Plot timeseries of % capacity and weather variables
+        dfh.set_index('datetime',inplace=True)
+        dfh.reset_index(inplace=True)
+        fig,ax = plt.subplots(6, figsize=(14,12), sharex=True)
+        ax[0].plot(dfh['datetime'].values, dfh['percent_capacity'],'.')
+        ax[0].set_ylabel('% Capacity')
+        ax[0].set_title(park_info[park_name]['pretty_name'])
+        ax[1].plot(dfh['datetime'].values, dfh['temperature'],'.')
+        ax[1].set_ylabel('Temp.')
+        ax[2].plot(dfh['datetime'].values, dfh['uvIndex'],'.')
+        ax[2].set_ylabel('UV Index')
+        ax[3].plot(dfh['datetime'].values, dfh['precipIntensity'],'.')
+        ax[3].set_ylabel('Precip')
+        ax[4].plot(dfh['datetime'].values, dfh['cloudCover'],'.')
+        ax[4].set_ylabel('Cloud Cover')
+        ax[5].plot(dfh['datetime'].values, dfh['windGust'],'.')
+        ax[5].set_ylabel('Wind Gust')
+        plt.savefig('./images/' + park_name + '_PerCap_weather_TS.png')
+        plt.close()
+
+        # Make scatter plots of % capacity versus weather variables
+        fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(14,10), sharey=True)
         
-    fig,ax = plt.subplots(2,figsize=(14,10), sharex=True)
-    ax[0].plot(df_gb_day['date'], df_gb_day['total_cars'],'o-')
-    ax[0].set_ylabel('Total Cars')
-    ax[0].set_title(park_name_plot)
-    ax[1].plot(df_gb_day['date'], df_gb_day['max_pc'],'o-')
-    ax[1].set_ylabel('Max % Cap.')
-    plt.savefig('./images/' + park_name + '_Daily_TS.png')
-    
-    # Load hourly resampled data and filter to open hours
-    dfh = read_process_park_data_into_hourly(park_name)
-    dfh = dfh[(dfh['hour']>5) & (dfh['hour']<20)]
-   
-    # Group by hour and plot average % capacity
-    d_gbh = dfh.groupby('hour').mean().reset_index()
-    fig,ax = plt.subplots(1, figsize=(8,6))
-    ax.bar(d_gbh['hour'], d_gbh['percent_capacity'])
-    ax.set_xlabel('Hour')
-    ax.set_ylabel('Average % Capacity')
-    ax.set_title(park_name_plot)
-    plt.savefig('./images/' + park_name + '_AvgPerCap_vs_hour.png')
+        sns.regplot(dfh['temperature'], dfh['percent_capacity'], robust=True, ci=None, scatter_kws={"alpha": 0.2}, ax = ax.flatten()[0])
+        ax.flatten()[0].set_xlabel('Temperature')
+        ax.flatten()[0].set_ylabel('% Of Capacity')
+        ax.flatten()[0].set_ylim(0,100)
 
-    # Group by day of week and plot average % capacity
-    df_gb_dow = dfh.groupby('dow').mean().reset_index()
-    fig,ax = plt.subplots(1, figsize=(8,6))
-    ax.bar(df_gb_dow['dow'], df_gb_dow['percent_capacity'])
-    ax.set_xlabel('Day of Week (0=Monday)')
-    ax.set_ylabel('Average % Capacity')
-    ax.set_title(park_name_plot)
-    plt.savefig('./images/' + park_name + '_AvgPerCap_vs_DayofWeek.png')
+        sns.regplot(dfh['uvIndex'], dfh['percent_capacity'], x_jitter=0.2, robust=True, ci=None,scatter_kws={"alpha": 0.2}, ax = ax.flatten()[1])
+        ax.flatten()[1].set_xlabel('UV Index')
+        ax.flatten()[1].set_ylabel('% Of Capacity')
+        ax.flatten()[1].set_ylim(0,100)
 
-    # Load weather data and merge with hourly parking data
-    wea = pd.read_pickle('./data/weather/weather_combined_wea_hourly.pkl')
-    wea = wea[['time','temperature','cloudCover','precipIntensity','windGust','uvIndex']]
-    dfh = pd.merge(dfh,wea,left_on='datetime',right_on='time')
+        sns.regplot(dfh['cloudCover'], dfh['percent_capacity'], robust=True, ci=None,scatter_kws={"alpha": 0.2}, ax = ax.flatten()[2])
+        ax.flatten()[2].set_xlabel('Cloud Cover')
+        ax.flatten()[2].set_ylabel('% Of Capacity')
+        ax.flatten()[2].set_ylim(0,100)
 
-    # Plot timeseries of % capacity and weather variables
-    dfh.set_index('datetime',inplace=True)
-    dfh.reset_index(inplace=True)
-    fig,ax = plt.subplots(6, figsize=(14,12), sharex=True)
-    ax[0].plot(dfh['datetime'].values, dfh['percent_capacity'],'.')
-    ax[0].set_ylabel('% Capacity')
-    ax[0].set_title(park_name_plot)
-    ax[1].plot(dfh['datetime'].values, dfh['temperature'],'.')
-    ax[1].set_ylabel('Temp.')
-    ax[2].plot(dfh['datetime'].values, dfh['uvIndex'],'.')
-    ax[2].set_ylabel('UV Index')
-    ax[3].plot(dfh['datetime'].values, dfh['precipIntensity'],'.')
-    ax[3].set_ylabel('Precip')
-    ax[4].plot(dfh['datetime'].values, dfh['cloudCover'],'.')
-    ax[4].set_ylabel('Cloud Cover')
-    ax[5].plot(dfh['datetime'].values, dfh['windGust'],'.')
-    ax[5].set_ylabel('Wind Gust')
-    plt.savefig('./images/' + park_name + '_PerCap_weather_TS.png')
+        sns.regplot(dfh['precipIntensity'], dfh['percent_capacity'], robust=True, ci=None,scatter_kws={"alpha": 0.2}, ax = ax.flatten()[3])
+        ax.flatten()[3].set_xlabel('Precipitation Intensity')
+        ax.flatten()[3].set_ylabel('% Of Capacity')
+        ax.flatten()[3].set_ylim(0,100)
 
-    # Make scatter plots of % capacity versus weather variables
-    fig,ax = plt.subplots(nrows=2, ncols=2, figsize=(14,10), sharey=True)
-    sns.regplot(dfh['temperature'], dfh['percent_capacity'], robust=True, ci=None, scatter_kws={"alpha": 0.2}, ax = ax.flatten()[0])
-    ax.flatten()[0].set_xlabel('Temperature')
-    ax.flatten()[0].set_ylabel('% Capacity')
-    sns.regplot(dfh['uvIndex'], dfh['percent_capacity'], x_jitter=0.2, robust=True, ci=None,scatter_kws={"alpha": 0.2}, ax = ax.flatten()[1])
-    ax.flatten()[1].set_xlabel('UV Index')
-    ax.flatten()[1].set_ylabel('% Capacity')
-    sns.regplot(dfh['cloudCover'], dfh['percent_capacity'], robust=True, ci=None,scatter_kws={"alpha": 0.2}, ax = ax.flatten()[2])
-    ax.flatten()[2].set_xlabel('Cloud Cover')
-    ax.flatten()[2].set_ylabel('% Capacity')
-    sns.regplot(dfh['precipIntensity'], dfh['percent_capacity'], robust=True, ci=None,scatter_kws={"alpha": 0.2}, ax = ax.flatten()[3])
-    ax.flatten()[3].set_xlabel('Precipitation Intensity')
-    ax.flatten()[3].set_ylabel('% Capacity')
-    plt.savefig('./images/' + park_name + '_weather_scatter.png')
+        plt.savefig('./images/' + park_name + '_weather_scatter.png')
+        plt.close()
