@@ -24,14 +24,6 @@ plt.rcParams['ytick.labelsize'] = 'large'
 plt.rcParams['lines.linewidth'] = 3
 plt.style.use('ggplot')
 
-park_info = {}
-park_info['east_mount_falcon']  = {'lat':39.646865, 'lon':-105.196314}
-park_info['east_three_sisters'] = {'lat':39.623484, 'lon':-105.345841}
-park_info['east_white_ranch']   = {'lat':39.798109, 'lon':-105.246799}
-park_info['lair_o_the_bear']    = {'lat':39.665616, 'lon':-105.258430}
-park_info['mount_galbraith']    = {'lat':39.774085, 'lon':-105.253516}
-park_info['west_mount_falcon']  = {'lat':39.637136, 'lon':-105.239178}
-park_info['west_three_sisters'] = {'lat':39.624941, 'lon':-105.360398}
 
 def load_resampled_park_data(park_name):
     base_dir = './data/proc/LotSpot/'
@@ -91,6 +83,9 @@ def plot_feature_importance(tree_model, feature_names):
     return fig,ax
 
 if __name__=='__main__':
+
+    with open('./data/park_info.pkl', 'rb') as f:
+        park_info = pickle.load(f)
 
     file1 = open("./model/model_summary.txt","a")
 
