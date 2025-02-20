@@ -11,11 +11,15 @@ def read_process_park_data(park_name):
     park_name (str) : Name of park to load
 
     RETURNS
-    df (Pandas Dataframe)
+    df : Processed Pandas Dataframe
     '''
+
+    # read in raw data to dataframe
     col_names = ['percent_capacity','spots_taken','total_spots','timestamp','in_out']
+    
     df = pd.read_csv('./data/raw/LotSpot/' + park_name + '.csv', header=None, names=col_names )
 
+    # add local datetime field
     df['datetime_utc'] = pd.to_datetime(df['timestamp'], origin='unix', unit='s', utc=True)
     df['datetime'] = df['datetime_utc'].dt.tz_convert('US/Mountain')
     df.drop(['timestamp','datetime_utc'], axis=1, inplace=True)
@@ -43,6 +47,7 @@ def read_process_park_data_into_hourly(park_name):
     RETURNS
     df_hourly (Pandas Dataframe), *resampled to hourly intervals*
     '''
+
     col_names = ['percent_capacity','spots_taken','total_spots','timestamp','in_out']
     df = pd.read_csv('./data/raw/LotSpot/' + park_name + '.csv', header=None, names=col_names )
 
@@ -74,8 +79,9 @@ def agg_lotspot_daily(df):
     df (Pandas Dataframe) : Dataframe of raw LotSpot data
 
     RETURNS
-    df_gb_day
+    df_gb_day(Pandas Dataframe) : Dataframe aggregated by day
     '''
+    
     df_gb_day = df.groupby('date').agg(total_cars=pd.NamedAgg(column='in_out',aggfunc='sum'),
         med_pc = pd.NamedAgg(column='percent_capacity', aggfunc='median'),
         avg_pc = pd.NamedAgg(column='percent_capacity', aggfunc='mean'),
